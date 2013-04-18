@@ -2,11 +2,14 @@ package com.example.roundclippinglayout;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
@@ -39,7 +42,7 @@ public class RoundClippingLinearLayout extends LinearLayout {
 	protected void onInit() {
 		drawPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		drawPaint.setColor(0xffffffff);
-		drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+		drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
 
 		roundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		roundPaint.setColor(0xffffffff);
@@ -56,13 +59,18 @@ public class RoundClippingLinearLayout extends LinearLayout {
 	}
 
 	@Override
-	protected void onDraw(Canvas canvas) {
-		super.onDraw(canvas);
+	protected void dispatchDraw(Canvas canvas) {
+		Bitmap bitmap = Bitmap.createBitmap((int) bounds.width(), (int) bounds.height(), Bitmap.Config.ARGB_8888);
+		Canvas c = new Canvas(bitmap);
+		super.dispatchDraw(c);
 
-		int sc = canvas.saveLayer(0, 0, getWidth(), getHeight(), drawPaint, Canvas.MATRIX_SAVE_FLAG | Canvas.CLIP_SAVE_FLAG | Canvas.HAS_ALPHA_LAYER_SAVE_FLAG
-				| Canvas.FULL_COLOR_LAYER_SAVE_FLAG | Canvas.CLIP_TO_LAYER_SAVE_FLAG);
-		canvas.drawRoundRect(bounds, mCornerRadius, mCornerRadius, roundPaint);
-		canvas.restoreToCount(sc);
+		BitmapShader shader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+
+		Paint paint = new Paint();
+		paint.setAntiAlias(true);
+		paint.setShader(shader);
+
+		canvas.drawRoundRect(bounds, mCornerRadius, mCornerRadius, paint);
 	}
 
 }
